@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <title>Para de ser ruim</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root { font-family: system-ui, Arial, sans-serif; }
+        * { box-sizing: border-box; }
+        body {
+          margin:0; min-height:100vh; display:grid; place-items:center;
+          background:#0f172a; color:#e2e8f0;
+        }
+        .card {
+          width:min(600px,92vw); background:#111827; border:1px solid #1f2937;
+          border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+        }
+        h1 { margin:0 0 6px; font-size:1.5rem; }
+        .subtitle { margin:0 0 14px; opacity:.9; }
+        .countdown-bar { height:6px; background:#1f2937; border-radius:999px; overflow:hidden; margin:10px 0 18px; }
+        .countdown-fill { height:100%; width:100%; background:#22d3ee; transition:width .2s linear; }
+        .arena {
+          position:relative; height:240px; border:1px dashed #334155; border-radius:12px;
+          display:flex; align-items:center; justify-content:center; overflow:hidden;
+          gap:12px;
+        }
+        button {
+          padding:10px 18px; border-radius:999px; border:none; cursor:pointer; font-weight:700;
+        }
+        .yes { background:#22c55e; color:#052e12; }
+        .no  { background:#ef4444; color:#fff; position:absolute; }
+        .disabled { opacity:.5; pointer-events:none; }
+        .result { margin-top:14px; font-weight:700; min-height:1.2em; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Você tem <span id="time">5</span>s para responder!</h1>
+    <p class="subtitle">Vai me pagar um açaí? 😇</p>
+
+    <div class="countdown-bar"><div class="countdown-fill" id="bar"></div></div>
+
+    <div class="arena" id="arena">
+        <!-- "Sim" não faz nada -->
+        <button class="yes" id="yesBtn">Sim</button>
+        <!-- "Não" foge ao clicar, sem parar o timer -->
+        <button class="no"  id="noBtn">Não</button>
+    </div>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    const timeEl = document.getElementById('time');
+    const barEl  = document.getElementById('bar');
+    const arena  = document.getElementById('arena');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn  = document.getElementById('noBtn');
+    const result = document.getElementById('result');
+
+    // "Sim" não faz nada
+    yesBtn.addEventListener('click', e => e.preventDefault());
+
+    // --- TIMER (não para ao clicar no "Não") ---
+    let timeLeft = 5;
+    const total  = 5;
+    let timeUp = false;
+
+    const timer = setInterval(() => {
+      if (timeUp) return;
+      timeLeft--;
+      if (timeLeft < 0) timeLeft = 0;
+
+      timeEl.textContent = timeLeft;
+      barEl.style.width = (100 * timeLeft / total) + '%';
+
+      if (timeLeft === 0) {
+        timeUp = true;
+        clearInterval(timer);
+        result.textContent = "Uma querida, eu sabia 💕";
+        // trava os botões após o término
+        yesBtn.classList.add('disabled');
+        noBtn.classList.add('disabled');
+      }
+    }, 1000);
+
+    // --- "NÃO" FUJÃO (muda de lugar a cada clique) ---
+    function positionNoRandom(){
+      const pad = 8;
+      const rect = arena.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      const maxLeft = rect.width  - b.width  - pad*2;
+      const maxTop  = rect.height - b.height - pad*2;
+
+      const left = Math.random() * maxLeft + pad;
+      const top  = Math.random() * maxTop  + pad;
+
+      noBtn.style.left = left + 'px';
+      noBtn.style.top  = top  + 'px';
+    }
+
+    // posição inicial do "Não"
+    positionNoRandom();
+
+    // ao clicar no "Não": só muda de lugar (timer continua normal)
+    noBtn.addEventListener('click', (e) => {
+      e.preventDefault(); // só pra garantir em caso de forms
+      if (timeUp) return; // se o tempo já acabou, não precisa mais fugir
+      positionNoRandom();
+    });
+</script>
+</body>
+</html>
+
